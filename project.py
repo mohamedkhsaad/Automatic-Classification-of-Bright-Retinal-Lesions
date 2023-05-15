@@ -1,7 +1,9 @@
-# pylint: disable=no-member
-"""Classification Algorithm that classify retinal image to three classes: Normal, Drusen, and Exudate retinal fundus images.
-Platform: Python
-Evaluation Criteria: Sensitivity, specificity, accuracy, F-score, the area under the curve, Robustness, Methodology, Computational time
+# pylint: disable=no-member, missing-function-docstring
+"""Classification Algorithm that classify retinal image to three classes: 
+Normal, Drusen, and Exudate retinal fundus images.
+Platform: Python 3.10.7 64-bit
+Evaluation Criteria: 
+    - Sensitivity, specificity, accuracy, F-score, AUC, and confusion matrix
 """
 
 import os
@@ -92,7 +94,7 @@ def cnn_model(y_train, y_test, X_train, X_test):
 
 
 ############################### Evaluate the model on the test data ###############################
-def evaluate_model(model, y_test):
+def evaluate_model(model, y_test, X_test, class_labels):
     # Make predictions on the test set
     probabilities = model.predict(X_test)
     # Convert probabilities to class labels
@@ -128,35 +130,33 @@ def evaluate_model(model, y_test):
     print("Precision:", precision)
     print("F1-score:", f1)
     print("AUC:", auc)
-    print("Time:", (end-start))
+    
     print(classification_report(y_test, y_pred, target_names=class_labels))
 
 
 if __name__ == "__main__":
     # Set the directory path where your images are located
-    DIRECTORY = "E:\Spring 23\SBEN424 - Advanced Image processing\Project"
-
+    DIRECTORY = r"E:\Spring 23\SBEN424 - Advanced Image processing\Project"
     # Set the target size for resizing the images
     target_size = (256, 256)  # Adjust the size as needed
-
+    
     # Load and preprocess the images from the directory
     image_array, label_array, class_labels = load_images_from_directory(
         DIRECTORY, target_size)
-
+    
     # Split the data into training and testing sets
     X_train, X_test, y_train, y_test = train_test_split(
         image_array, label_array, test_size=0.4, random_state=42)
 
     # Starting time
     start = time.time()
-
-
+    # Train the CNN model
     model = cnn_model(y_train, y_test, X_train, X_test)
-
     # Ending time
     end = time.time()
 
-    evaluate_model(model, y_test)
+    evaluate_model(model, y_test, X_test, class_labels)
+    print("Time:", (end-start))
 
     # Make predictions on new data
     # new_data = [...]  # Replace [...] with your new data
