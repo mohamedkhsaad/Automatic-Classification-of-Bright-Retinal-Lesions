@@ -60,9 +60,10 @@ def load_images_from_directory(directory, target_size):
 
 
 ################################# Training the CNN model #################################
-def cnn_model(y_train, y_test, X_train, X_test, label_encoder):
+def cnn_model(y_train, y_test, X_train, X_test):
 
     # Convert the string labels to numeric format
+    label_encoder = LabelEncoder()
     y_train = label_encoder.fit_transform(y_train)
     y_test = label_encoder.transform(y_test)
 
@@ -94,15 +95,12 @@ def cnn_model(y_train, y_test, X_train, X_test, label_encoder):
 
 
 ############################### Evaluate the model on the test data ###############################
-def evaluate_model(model, y_test, label_encoder):
+def evaluate_model(model, y_test):
     # Make predictions on the test set
     probabilities = model.predict(X_test)
     # Convert probabilities to class labels
     y_pred = probabilities.argmax(axis=1)
 
-    # Convert predictions and true labels back to their original form
-    y_pred = label_encoder.inverse_transform(y_pred)
-    y_test = label_encoder.inverse_transform(y_test)
     # Calculate AUC
     auc = roc_auc_score(y_test, probabilities, multi_class='ovr')
 
@@ -155,14 +153,13 @@ if __name__ == "__main__":
     # Starting time
     start = time.time()
 
-    label_encoder = LabelEncoder()
 
-    model = cnn_model(y_train, y_test, X_train, X_test, label_encoder)
+    model = cnn_model(y_train, y_test, X_train, X_test)
 
     # Ending time
     end = time.time()
 
-    evaluate_model(model, y_test, label_encoder)
+    evaluate_model(model, y_test)
 
     # Make predictions on new data
     # new_data = [...]  # Replace [...] with your new data
