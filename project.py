@@ -99,9 +99,13 @@ def evaluate_model(model, y_test, X_test, class_labels):
     # Convert probabilities to class labels
     y_pred = probabilities.argmax(axis=1)
 
+    label_encoder = LabelEncoder()
+    y_test = label_encoder.transform(y_test)
+
     # Calculate AUC
     auc = roc_auc_score(y_test, probabilities, multi_class='ovr')
-
+    print(y_test)
+    print(y_pred)
     # Calculate accuracy
     accuracy = accuracy_score(y_test, y_pred)
 
