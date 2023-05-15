@@ -52,3 +52,5 @@ The computational time required for training and inference is approximately 51.1
 ## Summary and Conclusion
 
 The developed CNN model shows promising accuracy in classifying retinal images into normal, drusen, and exudates categories. The model demonstrates potential for assisting in automated eye disease detection. However, the limitations of a limited dataset size and room for further exploration of advanced architectures and techniques should be considered for future improvements.
+
+
