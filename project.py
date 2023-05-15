@@ -83,9 +83,6 @@ def cnn_model(y_train, y_test, X_train, X_test):
     # Compile the model
     model.compile(optimizer='adam', loss='sparse_categorical_crossentropy',
                   metrics=['accuracy'])
-    #    'specificity','precision','f1','AUC',
-    #    'Recall','FalsePositiveRate','TruePositiveRate','FalsePositiveRate','TrueNegativeRate',
-    #    'FalseNegativeRate','ConfusionMatrix','robustness'])
 
     # Train the model
     model.fit(X_train, y_train, epochs=10, batch_size=32,
