@@ -1,15 +1,18 @@
+"""Classification Algorithm that classify retinal image to three classes: Normal, Drusen, and Exudate retinal fundus images.
+Platform: Python
+Evaluation Criteria:
+- Sensitivity, specificity, accuracy, F-score, the area under the curve, Robustness, Methodology, Computational time
+"""
+
 import os
+import time
+
 import cv2
 import numpy as np
-import matplotlib.pyplot as plt
 from sklearn.preprocessing import LabelEncoder
 from keras.models import Sequential
 from keras.layers import Conv2D, MaxPooling2D, Flatten, Dense
-from sklearn.metrics import accuracy_score, precision_score, recall_score, f1_score, roc_auc_score, roc_curve, confusion_matrix
-from sklearn.metrics import roc_curve, roc_auc_score,classification_report
-import time
-from sklearn.preprocessing import label_binarize
-from itertools import cycle
+from sklearn.metrics import accuracy_score, precision_score, recall_score, f1_score, roc_auc_score, roc_curve, confusion_matrix, roc_curve, roc_auc_score,classification_report
 from sklearn.model_selection import train_test_split
 
 def preprocess_image(image_path, target_size):
@@ -18,11 +21,6 @@ def preprocess_image(image_path, target_size):
     image = cv2.cvtColor(image, cv2.COLOR_BGR2RGB)  # Convert to RGB format
     image = cv2.resize(image, target_size, interpolation=cv2.INTER_LINEAR)  # Resize the image using bilinear interpolation
     image = image.astype('float32')/255.0 # Normalize the image pixel values to 0-1 scale
-
-    # # Apply contrast enhancement using histogram equalization
-    # image_gray = cv2.cvtColor(image, cv2.COLOR_RGB2GRAY)
-    # image_eq = cv2.equalizeHist(image_gray)
-    # image_eq_rgb = cv2.cvtColor(image_eq, cv2.COLOR_GRAY2RGB)
 
     return image
 
@@ -131,8 +129,8 @@ sensitivity = recall_score(y_test, y_pred, average='macro')
 # Calculate specificity
 def specificity_score(y_true, y_pred):
     cm = confusion_matrix(y_true, y_pred)
-    specificity = cm[0, 0] / (cm[0, 0] + cm[0, 1])
-    return specificity
+    specificity_score = cm[0, 0] / (cm[0, 0] + cm[0, 1])
+    return specificity_score
 
 specificity = specificity_score(y_test, y_pred)
 
@@ -151,6 +149,7 @@ print("F1-score:", f1)
 print("AUC:", auc)
 print("Time:",(end-start))
 print(classification_report(y_test, y_pred, target_names=class_labels))
+
 # Assuming you have calculated the predicted probabilities for each class
 # and stored them in y_pred_probs array, and the true labels are stored in y_true array.
 
@@ -164,9 +163,3 @@ print(classification_report(y_test, y_pred, target_names=class_labels))
 # class_labels = ["normal", "exudates", "drusen"]
 # for label in predicted_labels:
 #     print(class_labels[label])
-
-
-
-
-
-# Remember to modify and extend the code based on the specific requirements of your project and CNN model.
