@@ -63,7 +63,6 @@ def load_images_from_directory(directory, target_size):
 
 ################################# Training the CNN model #################################
 def cnn_model(y_train, y_test, X_train, X_test):
-
     # Convert the string labels to numeric format
     label_encoder = LabelEncoder()
     y_train = label_encoder.fit_transform(y_train)
