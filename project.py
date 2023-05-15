@@ -1,7 +1,7 @@
+# pylint: disable=no-member
 """Classification Algorithm that classify retinal image to three classes: Normal, Drusen, and Exudate retinal fundus images.
 Platform: Python
-Evaluation Criteria:
-- Sensitivity, specificity, accuracy, F-score, the area under the curve, Robustness, Methodology, Computational time
+Evaluation Criteria: Sensitivity, specificity, accuracy, F-score, the area under the curve, Robustness, Methodology, Computational time
 """
 
 import os
@@ -9,21 +9,28 @@ import time
 
 import cv2
 import numpy as np
+
 from sklearn.preprocessing import LabelEncoder
+from sklearn.model_selection import train_test_split
+from sklearn.metrics import accuracy_score, precision_score, recall_score, f1_score, confusion_matrix, roc_auc_score, classification_report
+
 from keras.models import Sequential
 from keras.layers import Conv2D, MaxPooling2D, Flatten, Dense
-from sklearn.metrics import accuracy_score, precision_score, recall_score, f1_score, roc_auc_score, roc_curve, confusion_matrix, roc_curve, roc_auc_score,classification_report
-from sklearn.model_selection import train_test_split
+
 
 ############################### preprocess the images ###########################
 def preprocess_image(image_path, target_size):
     # Load and preprocess a single image
     image = cv2.imread(image_path)
     image = cv2.cvtColor(image, cv2.COLOR_BGR2RGB)  # Convert to RGB format
-    image = cv2.resize(image, target_size, interpolation=cv2.INTER_LINEAR)  # Resize the image using bilinear interpolation
-    image = image.astype('float32')/255.0 # Normalize the image pixel values to 0-1 scale
+    # Resize the image using bilinear interpolation
+    image = cv2.resize(image, target_size, interpolation=cv2.INTER_LINEAR)
+    # Normalize the image pixel values to 0-1 scale
+    image = image.astype('float32')/255.0
 
     return image
+
+
 ############################### Load the images ###############################
 def load_images_from_directory(directory, target_size):
     image_list = []
@@ -38,7 +45,8 @@ def load_images_from_directory(directory, target_size):
         if os.path.isdir(class_dir):
             # Iterate over the images in the class directory
             for filename in os.listdir(class_dir):
-                if filename.endswith(".jpg") or filename.endswith(".png"):  # Adjust the file extensions as needed
+                # Adjust the file extensions as needed
+                if filename.endswith(".jpg") or filename.endswith(".png"):
                     image_path = os.path.join(class_dir, filename)
                     image = preprocess_image(image_path, target_size)
                     image_list.append(image)
@@ -50,117 +58,119 @@ def load_images_from_directory(directory, target_size):
 
     return image_array, label_array, class_labels
 
-# Set the directory path where your images are located
-data_directory = "E:\Spring 23\SBEN424 - Advanced Image processing\Project"
-# Set the target size for resizing the images
-target_size = (256, 256)  # Adjust the size as needed
-
-# Load and preprocess the images from the directory
-image_array, label_array,class_labels = load_images_from_directory(data_directory, target_size)
-
-# Split the data into training and testing sets
-X_train, X_test, y_train, y_test = train_test_split(image_array, label_array, test_size=0.4, random_state=42)
-
-# Now you have the training and testing sets (X_train, X_test) and their corresponding labels (y_train, y_test)
-
-#Starting time
-start=time.time()
 
 ################################# Training the CNN model #################################
+def cnn_model(y_train, y_test, X_train, X_test, label_encoder):
 
-# Convert the string labels to numeric format
-label_encoder = LabelEncoder()
-y_train = label_encoder.fit_transform(y_train)
-y_test = label_encoder.transform(y_test)
+    # Convert the string labels to numeric format
+    y_train = label_encoder.fit_transform(y_train)
+    y_test = label_encoder.transform(y_test)
 
+    # Define the CNN model architecture
+    model = Sequential()
+    model.add(Conv2D(32, (3, 3), activation='relu',
+              input_shape=(target_size[0], target_size[1], 3)))
+    model.add(MaxPooling2D((2, 2)))
+    model.add(Conv2D(64, (3, 3), activation='relu'))
+    model.add(MaxPooling2D((2, 2)))
+    model.add(Conv2D(128, (3, 3), activation='relu'))
+    model.add(MaxPooling2D((2, 2)))
+    model.add(Flatten())
+    model.add(Dense(128, activation='relu'))
+    model.add(Dense(3, activation='softmax'))
 
-# Define the CNN model architecture
-model = Sequential()
-model.add(Conv2D(32, (3, 3), activation='relu', input_shape=(target_size[0], target_size[1], 3)))
-model.add(MaxPooling2D((2, 2)))
-model.add(Conv2D(64, (3, 3), activation='relu'))
-model.add(MaxPooling2D((2, 2)))
-model.add(Conv2D(128, (3, 3), activation='relu'))
-model.add(MaxPooling2D((2, 2)))
-model.add(Flatten())
-model.add(Dense(128, activation='relu'))
-model.add(Dense(3, activation='softmax'))
+    # Compile the model
+    model.compile(optimizer='adam', loss='sparse_categorical_crossentropy',
+                  metrics=['accuracy'])
+    #    'specificity','precision','f1','AUC',
+    #    'Recall','FalsePositiveRate','TruePositiveRate','FalsePositiveRate','TrueNegativeRate',
+    #    'FalseNegativeRate','ConfusionMatrix','robustness'])
 
-# Compile the model
-model.compile(optimizer='adam', loss='sparse_categorical_crossentropy', 
-              metrics=['accuracy'])
-                    #    'specificity','precision','f1','AUC',
-                    #    'Recall','FalsePositiveRate','TruePositiveRate','FalsePositiveRate','TrueNegativeRate',
-                    #    'FalseNegativeRate','ConfusionMatrix','robustness'])
+    # Train the model
+    model.fit(X_train, y_train, epochs=10, batch_size=32,
+              validation_data=(X_test, y_test))
 
-# Train the model
-model.fit(X_train, y_train, epochs=10, batch_size=32, validation_data=(X_test, y_test))
+    return model
 
-# Evaluate the model on the test data
-loss, accuracy = model.evaluate(X_test, y_test)
-print(f'Test loss: {loss:.4f}')
-print(f'Test accuracy: {accuracy:.4f}')
-
-#Ending time
-end=time.time()
 
 ############################### Evaluate the model on the test data ###############################
-# Make predictions on the test set
-probabilities = model.predict(X_test)
-y_pred = probabilities.argmax(axis=1)  # Convert probabilities to class labels
+def evaluate_model(model, y_test, label_encoder):
+    # Make predictions on the test set
+    probabilities = model.predict(X_test)
+    # Convert probabilities to class labels
+    y_pred = probabilities.argmax(axis=1)
 
-# Convert predictions and true labels back to their original form
-y_pred = label_encoder.inverse_transform(y_pred)
-y_test = label_encoder.inverse_transform(y_test)
-# Calculate AUC
-auc = roc_auc_score(y_test, probabilities, multi_class='ovr')
+    # Convert predictions and true labels back to their original form
+    y_pred = label_encoder.inverse_transform(y_pred)
+    y_test = label_encoder.inverse_transform(y_test)
+    # Calculate AUC
+    auc = roc_auc_score(y_test, probabilities, multi_class='ovr')
 
-#Transforming the labels to binary #Failed
-# y_pred[y_pred=='normal']=0
-# y_pred[y_pred=='exudates']=1
-# y_pred[y_pred=='drusen']=1
-# y_test[y_test=='normal']=0
-# y_test[y_test=='exudates']=1
-# y_test[y_test=='drusen']=1
+    # Calculate accuracy
+    accuracy = accuracy_score(y_test, y_pred)
 
-# Calculate accuracy
-accuracy = accuracy_score(y_test, y_pred)
+    # Calculate sensitivity (recall)
+    sensitivity = recall_score(y_test, y_pred, average='macro')
 
-# Calculate sensitivity (recall)
-sensitivity = recall_score(y_test, y_pred, average='macro')
+    # Calculate specificity
+    def specificity_score(y_true, y_pred):
+        cm = confusion_matrix(y_true, y_pred)
+        specificity_score = cm[0, 0] / (cm[0, 0] + cm[0, 1])
+        return specificity_score
 
-# Calculate specificity
-def specificity_score(y_true, y_pred):
-    cm = confusion_matrix(y_true, y_pred)
-    specificity_score = cm[0, 0] / (cm[0, 0] + cm[0, 1])
-    return specificity_score
+    specificity = specificity_score(y_test, y_pred)
 
-specificity = specificity_score(y_test, y_pred)
+    # Calculate precision
+    precision = precision_score(y_test, y_pred, average='macro')
 
-# Calculate precision
-precision = precision_score(y_test, y_pred, average='macro')
+    # Calculate F1-score
+    f1 = f1_score(y_test, y_pred, average='macro')
 
-# Calculate F1-score
-f1 = f1_score(y_test, y_pred, average='macro')
-
-# Print the metrics
-print("Accuracy:", accuracy)
-print("Sensitivity:", sensitivity)
-print("Specificity:", specificity)
-print("Precision:", precision)
-print("F1-score:", f1)
-print("AUC:", auc)
-print("Time:",(end-start))
-print(classification_report(y_test, y_pred, target_names=class_labels))
+    # Print the metrics
+    print("Accuracy:", accuracy)
+    print("Sensitivity:", sensitivity)
+    print("Specificity:", specificity)
+    print("Precision:", precision)
+    print("F1-score:", f1)
+    print("AUC:", auc)
+    print("Time:", (end-start))
+    print(classification_report(y_test, y_pred, target_names=class_labels))
 
 
-# # Make predictions on new data
-# new_data = [...]  # Replace [...] with your new data
-# preprocessed_data = [...]  # Preprocess the new data
-# predictions = model.predict(preprocessed_data)
+if __name__ == "__main__":
+    # Set the directory path where your images are located
+    DIRECTORY = "E:\Spring 23\SBEN424 - Advanced Image processing\Project"
 
-# # Print the predicted class labels
-# predicted_labels = np.argmax(predictions, axis=1)
-# class_labels = ["normal", "exudates", "drusen"]
-# for label in predicted_labels:
-#     print(class_labels[label])
+    # Set the target size for resizing the images
+    target_size = (256, 256)  # Adjust the size as needed
+
+    # Load and preprocess the images from the directory
+    image_array, label_array, class_labels = load_images_from_directory(
+        DIRECTORY, target_size)
+
+    # Split the data into training and testing sets
+    X_train, X_test, y_train, y_test = train_test_split(
+        image_array, label_array, test_size=0.4, random_state=42)
+
+    # Starting time
+    start = time.time()
+
+    label_encoder = LabelEncoder()
+
+    model = cnn_model(y_train, y_test, X_train, X_test, label_encoder)
+
+    # Ending time
+    end = time.time()
+
+    evaluate_model(model, y_test, label_encoder)
+
+    # Make predictions on new data
+    # new_data = [...]  # Replace [...] with your new data
+    # preprocessed_data = [...]  # Preprocess the new data
+    # predictions = model.predict(preprocessed_data)
+
+    # # Print the predicted class labels
+    # predicted_labels = np.argmax(predictions, axis=1)
+    # class_labels = ["normal", "exudates", "drusen"]
+    # for label in predicted_labels:
+    #     print(class_labels[label])
