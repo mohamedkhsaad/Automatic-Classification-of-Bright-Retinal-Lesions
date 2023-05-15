@@ -2,16 +2,18 @@ import os
 import cv2
 import numpy as np
 import matplotlib.pyplot as plt
+
 from sklearn.preprocessing import LabelEncoder
 from keras.models import Sequential
 from keras.layers import Conv2D, MaxPooling2D, Flatten, Dense
-from sklearn.metrics import accuracy_score, precision_score, recall_score, f1_score, roc_auc_score, roc_curve, confusion_matrix
+from sklearn.metrics import accuracy_score, precision_score, recall_score, f1_score, roc_auc_score, confusion_matrix
 from sklearn.metrics import roc_curve, roc_auc_score,classification_report
 import time
 from sklearn.preprocessing import label_binarize
 from itertools import cycle
 from sklearn.model_selection import train_test_split
 
+############################### preprocess the images ###########################
 def preprocess_image(image_path, target_size):
     # Load and preprocess a single image
     image = cv2.imread(image_path)
@@ -25,7 +27,7 @@ def preprocess_image(image_path, target_size):
     # image_eq_rgb = cv2.cvtColor(image_eq, cv2.COLOR_GRAY2RGB)
 
     return image
-
+############################### Load the images ###############################
 def load_images_from_directory(directory, target_size):
     image_list = []
     label_list = []
@@ -64,8 +66,10 @@ X_train, X_test, y_train, y_test = train_test_split(image_array, label_array, te
 
 # Now you have the training and testing sets (X_train, X_test) and their corresponding labels (y_train, y_test)
 
+#Starting time
 start=time.time()
-# Training the CNN model
+
+################################# Training the CNN model #################################
 
 # Convert the string labels to numeric format
 label_encoder = LabelEncoder()
@@ -100,11 +104,10 @@ loss, accuracy = model.evaluate(X_test, y_test)
 print(f'Test loss: {loss:.4f}')
 print(f'Test accuracy: {accuracy:.4f}')
 
+#Ending time
 end=time.time()
 
-
-
-# # Evaluate the model on the test data
+############################### Evaluate the model on the test data ###############################
 # Make predictions on the test set
 probabilities = model.predict(X_test)
 y_pred = probabilities.argmax(axis=1)  # Convert probabilities to class labels
@@ -115,6 +118,7 @@ y_test = label_encoder.inverse_transform(y_test)
 # Calculate AUC
 auc = roc_auc_score(y_test, probabilities, multi_class='ovr')
 
+#Transforming the labels to binary #Failed
 # y_pred[y_pred=='normal']=0
 # y_pred[y_pred=='exudates']=1
 # y_pred[y_pred=='drusen']=1
@@ -151,8 +155,7 @@ print("F1-score:", f1)
 print("AUC:", auc)
 print("Time:",(end-start))
 print(classification_report(y_test, y_pred, target_names=class_labels))
-# Assuming you have calculated the predicted probabilities for each class
-# and stored them in y_pred_probs array, and the true labels are stored in y_true array.
+
 
 # # Make predictions on new data
 # new_data = [...]  # Replace [...] with your new data
@@ -169,4 +172,3 @@ print(classification_report(y_test, y_pred, target_names=class_labels))
 
 
 
-# Remember to modify and extend the code based on the specific requirements of your project and CNN model.
