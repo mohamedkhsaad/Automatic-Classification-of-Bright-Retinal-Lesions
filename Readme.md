@@ -4,7 +4,7 @@ This project focuses on the analysis of retinal images for eye disease detection
 
 ## Dataset
 
-The dataset used for this project consists of retinal images categorized into three classes: normal, drusen, and exudates. The dataset is split into training and testing sets, with an 80:20 ratio.
+The dataset used for this project consists of retinal images categorized into three classes: normal, drusen, and exudates. The dataset is split into training and testing sets, with an 60:40 ratio.
 
 ## Data Preprocessing
 
